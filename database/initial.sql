@@ -3,7 +3,8 @@ CREATE SEQUENCE seq_users START 1;
 CREATE TABLE users(
     id int4 not null default nextval('seq_users'),
     "name" varchar(150) not null,
-    password varchar(50) not null,
+    email text not null,
+    password varchar(100) not null,
     created_at timestamptz not null,
     updated_at timestamptz not null,
     deleted_at timestamptz,
