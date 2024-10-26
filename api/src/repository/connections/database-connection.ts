@@ -8,8 +8,13 @@ export interface IDatabase {
 export class Database {
     private pool: any;
     private logger: ILogger;
+    private conn: any;
     constructor({ logger }) {
         this.logger = logger;
+        if (!this.pool) {
+            this.pool = this.#initPool();
+            this.logger.info({ description: 'Conexão com banco de dados estabelecida com sucesso' });
+        }
     }
 
     #initPool() {
@@ -29,10 +34,10 @@ export class Database {
 
     async getPool() {
         try {
-            !this.pool && (this.pool = this.#initPool());
-            const conn = await this.pool.connect();
-            this.logger.info({ description: 'Conexão com banco de dados estabelecida com sucesso' });
-            return conn;
+            if (!this.conn) {
+                this.conn = await this.pool.connect();
+            }
+            return this.conn;
         } catch(error) {
             this.logger.error({ description: 'Falha na geração da conexão com o banco de dados', error });
         }

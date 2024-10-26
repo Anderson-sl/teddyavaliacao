@@ -3,10 +3,10 @@ import { IUserModel } from "../model/user-model";
 import { ILogger } from "../utils/logger/logger";
 
 export interface IUserController {
-    save: (req: Request, res: Response) => Response;
+    save: (req: Request, res: Response) => Promise<Response>;
 }
 
-export class UserController {
+export class UserController implements IUserController {
     private userModel: IUserModel;
     private logger: ILogger; 
     constructor({ userModel, logger }) {
@@ -14,7 +14,7 @@ export class UserController {
         this.logger = logger;
     }
 
-    public async save(req: Request, res: Response): Promise<any> {
+    public async save(req: Request, res: Response): Promise<Response> {
         try {
             const { body: fields } = req;
             const user = await this.userModel.save(fields);

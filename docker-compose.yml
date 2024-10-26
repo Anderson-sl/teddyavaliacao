@@ -10,5 +10,25 @@ services:
       - 5432:5432
     volumes:
       - ./database/initial.sql:/docker-entrypoint-initdb.d/initial.sql
+    networks:
+      - teddy-network
+  teddy-api:
+    container_name: app-teddy-api
+    build:
+      dockerfile: ./api/Dockerfile
+    ports:
+      - 3000:3000
+    volumes:
+      - ./api:/app
+    networks:
+      - teddy-network
+    depends_on:
+      teddy-db:
+        condition: service_started
+        restart: true
+    command: ["/bin/sh", "-f", "/app/init.sh"]
+networks:
+  teddy-network:
+    driver: bridge
     
   

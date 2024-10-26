@@ -7,7 +7,7 @@ export interface ILogger  {
 export type LoggerType = {
     description: String;
     user?: {
-        id: String|null;
+        id: number|null;
         name: String|null;
         email: String|null;
     };

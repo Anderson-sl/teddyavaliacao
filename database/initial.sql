@@ -24,3 +24,5 @@ CREATE TABLE manage_urls(
     deleted_at timestamptz,
     primary key (id)
 );
+
+CREATE UNIQUE INDEX u_manage_url_short ON manage_urls (url_short);
