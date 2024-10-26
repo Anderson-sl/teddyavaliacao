@@ -1,14 +1,17 @@
 import { Request, Response, Router } from "express";
 import { IUserModel } from "../model/user-model";
+import { ILogger } from "../utils/logger/logger";
 
 export interface IUserController {
     save: (req: Request, res: Response) => Response;
 }
 
 export class UserController {
-    private userModel: IUserModel; 
-    constructor({ userModel }) {
+    private userModel: IUserModel;
+    private logger: ILogger; 
+    constructor({ userModel, logger }) {
         this.userModel = userModel;
+        this.logger = logger;
     }
 
     public async save(req: Request, res: Response): Promise<any> {
@@ -21,7 +24,8 @@ export class UserController {
 
             return res.status(200).send(user);
         } catch(error) {
-            return res.status(500).send({ error: 'Ocooreu um erro em nossos serviços' });
+            this.logger.error({ description: 'Ocoreu um erro em nossos serviços', error });
+            return res.status(500).send({ error: 'Ocoreu um erro em nossos serviços' });
         }
     }
 }
