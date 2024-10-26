@@ -1,4 +1,5 @@
 import { Pool } from 'pg';
+import { ILogger } from '../../utils/logger/logger';
 
 export interface IDatabase {
     getPool: () => any;
@@ -6,7 +7,10 @@ export interface IDatabase {
 
 export class Database {
     private pool: any;
-    constructor() {}
+    private logger: ILogger;
+    constructor({ logger }) {
+        this.logger = logger;
+    }
 
     #initPool() {
         try {
@@ -19,13 +23,18 @@ export class Database {
                 max: `${process.env.SERVER_DB_LIMIT}`
             });
         } catch(error) {
-            console.log(error)
-            process.exit(1);
+            this.logger.error({ description: 'Falha na inicialização do Pool de conexões do banco de dados', error });
         }
     }
 
     async getPool() {
-        !this.pool && (this.pool = this.#initPool());
-        return await this.pool.connect();
+        try {
+            !this.pool && (this.pool = this.#initPool());
+            const conn = await this.pool.connect();
+            this.logger.info({ description: 'Conexão com banco de dados estabelecida com sucesso' });
+            return conn;
+        } catch(error) {
+            this.logger.error({ description: 'Falha na geração da conexão com o banco de dados', error });
+        }
     }
 }
