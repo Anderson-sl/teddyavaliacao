@@ -3,12 +3,18 @@ import { UserModel } from '../model/user-model';
 import { UserRepository } from '../repository/user-repository';
 import { Database } from '../repository/connections/database-connection';
 import { UserController } from '../http/user-controller';
-const router = Router();
-const databaseConnection = new Database();
-const userRepository = new UserRepository({ databaseConnection });
-const userModel = new UserModel({ userRepository });
-const userController = new UserController({ userModel });
+import { PasswordHash } from '../utils/password/password-hash';
 
-router.post('/', userController.save.bind(userController));
+const routers = ({ logger }) => {
+    const router = Router();
+    const databaseConnection = new Database({ logger });
+    const userRepository = new UserRepository({ databaseConnection, logger });
+    const passwordHash = new PasswordHash({ logger });
+    const userModel = new UserModel({ userRepository, logger, passwordHash });
+    const userController = new UserController({ userModel, logger });
 
-export default router;
+    router.post('/', userController.save.bind(userController));
+    return router;
+};
+
+export default routers;
