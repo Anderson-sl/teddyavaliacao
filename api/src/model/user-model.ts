@@ -1,5 +1,6 @@
 import { IUserRepository } from "../repository/user-repository";
-import bcrypt from 'bcrypt';
+import { ILogger } from "../utils/logger/logger";
+import { PasswordHash } from "../utils/password/password-hash";
 
 export type IUser = {
     id?: number;
@@ -18,23 +19,23 @@ export interface IUserModel {
 
 
 export class UserModel {
-    private cript: any;
     private userRepository: IUserRepository;
     private exclude = ['password'];
+    private logger: ILogger;
+    private passwordHash: any;
     private validate = {
         'name': (value: any) => typeof value === 'string' && /\w/g.test(String(value)),
         'email': (value: any) => typeof value === 'string' && /^[\w-\.]+@([\w-]+\.)+[\w-]{2,4}$/g.test(String(value)),
         'password': (value: any) => typeof value === 'string' && value.length > 8 && value.length < 100,
     };
     private modify = {
-        'password': (value: any) => {
-            const salt = this.cript.genSaltSync(12);
-            return this.cript.hashSync(String(value), salt);
-        },
+        'password': (value: any) => this.passwordHash.generateHash(String(value)),
     };
-    constructor({ userRepository }) {
+
+    constructor({ userRepository, logger, passwordHash }) {
         this.userRepository = userRepository;
-        this.cript = bcrypt;
+        this.logger = logger;
+        this.passwordHash = passwordHash;
     }
 
     private async fildsValidator(fields: any): Promise<Boolean> {
@@ -53,13 +54,19 @@ export class UserModel {
     }
 
     public async save(data: any): Promise<IUser> {
-        const isValide = await this.fildsValidator(data);
-        if (isValide) {
-            await this.fildsModify(data);
-            const user = await this.userRepository.save(data);
-            await this.filter(user);
-            return user;
+        try {
+            const isValide = await this.fildsValidator(data);
+            if (isValide) {
+                await this.fildsModify(data);
+                const user = await this.userRepository.save(data);
+                await this.filter(user);
+                return user;
+            }
+            this.logger.warn({ description: 'Os campos informado não são válidos' });
+            return null;
+        } catch(error) {
+            this.logger.error({ description: 'Erro ao tentar acionar o metodo save', error });
+            return null;
         }
-        return null;
     }
 }
